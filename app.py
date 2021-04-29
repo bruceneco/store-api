@@ -1,58 +1,33 @@
 from flask import Flask, request
+from flask_restful import Api, Resource
 
 app = Flask(__name__)
+api = Api(app)
 
-stores = [
-    {
-        'name': "Store One",
-        'items': [
-            {'name': "Wardrobe", 'price': 129.99},
-            {'name': "Desk", 'price': 30},
-        ]
-    }
-]
+items = []
 
 
-@app.route('/store', methods=["POST"])
-def create_store():
-    req_data = request.get_json()
-    new_store = {
-        'name': req_data['name'],
-        'items': []
-    }
-    stores.append(new_store)
-    return new_store
+class Item(Resource):
+    def get(self, name):
+        for item in items:
+            if item["name"] == name:
+                return item
+        return {"item": None}, 404
+
+    def post(self, name):
+        request_data = request.get_json()
+        item = {"name": name, "price": request_data["price"]}
+        items.append(item)
+        return item, 201
 
 
-@app.route("/store/<string:name>")
-def get_store(name):
-    for store in stores:
-        if store['name'] == name:
-            return store
-    return {'message': "store doesn't exist."}
+class ItemList(Resource):
+    def get(self):
+        return {"items": items}
 
 
-@app.route('/store')
-def get_stores():
-    return {'stores': stores}
+api.add_resource(Item, "/item/<string:name>")
+api.add_resource(ItemList, "/items")
 
-
-@app.route('/store/<string:store_name>/item', methods=['POST'])
-def create_item_in_store(store_name):
-    req_data = request.get_json()
-    for store in stores:
-        if store["name"] == store_name:
-            store['items'].append(req_data)
-            return req_data
-    return {'message': "store doesn't exist."}
-
-
-@app.route('/store/<string:store_name>/item')
-def get_items_in_store(store_name):
-    for store in stores:
-        if store['name'] == store_name:
-            return {'items': store['items']}
-
-
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    app.run()
