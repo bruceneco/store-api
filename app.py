@@ -14,6 +14,10 @@ items = []
 
 
 class Item(Resource):
+    parser = reqparse.RequestParser()
+    parser.add_argument("price", type=float, required=True, help="This field cannot be left empty!")
+
+
     @jwt_required()
     def get(self, name):
         item = next(filter(lambda x: x["name"] == name, items), None)
@@ -22,11 +26,7 @@ class Item(Resource):
     def post(self, name):
         if next(filter(lambda x: x["name"] == name, items), None):
             return {"message": f"An item with name {name} aready exists."}, 400
-
-        parser = reqparse.RequestParser()
-        parser.add_argument("price", type=float, required=True, help="This field cannot be left empty!")
-        req_data = parser.parse_args()
-
+        req_data = self.parser.parse_args()
         item = {"name": name, "price": req_data["price"]}
         items.append(item)
         return item, 201
@@ -37,10 +37,8 @@ class Item(Resource):
         return {"message": "Item deleted"}
 
     def put(self, name):
-        parser = reqparse.RequestParser()
-        parser.add_argument("price", type=float, required=True, help="This field cannot be left empty!")
-        req_data = parser.parse_args()
         item = next(filter(lambda x: x["name"] == name, items), None)
+        req_data = self.parser.parse_args()
         if item:
             item.update(req_data)
         else:
