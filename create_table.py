@@ -4,7 +4,7 @@ connection = sqlite3.connect("data.db")
 cursor = connection.cursor()
 
 # create table
-cursor.execute("CREATE TABLE IF NOT EXISTS users (id int, username text, password text, PRIMARY KEY (id))")
+cursor.execute("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username text, password text)")
 
 # create some users
 create_user = "INSERT INTO users VALUES (?, ?, ?)"

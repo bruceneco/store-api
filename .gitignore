@@ -6,3 +6,4 @@ venv/
 /.idea/store.iml
 /.idea/vcs.xml
 /.idea/.gitignore
+/data.db
