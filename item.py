@@ -143,6 +143,7 @@ class ItemList(Resource):
         cursor = connection.cursor()
 
         items = cursor.execute("SELECT * FROM items")
+        items = items.fetchall()
 
         connection.close()
 
