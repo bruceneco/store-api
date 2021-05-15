@@ -3,7 +3,7 @@ import sqlite3
 connection = sqlite3.connect("data.db")
 cursor = connection.cursor()
 
-# create table
+# create user table
 cursor.execute("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username text, password text)")
 
 # create some users
@@ -14,6 +14,12 @@ users = [
     (3, "jose", "zxc"),
 ]
 cursor.executemany(create_user, users)
+
+# create item table
+cursor.execute("CREATE TABLE IF NOT EXISTS items (name text PRIMARY KEY, price real)")
+
+# create test item
+cursor.execute("INSERT INTO items VALUES ('test', 10.99)")
 
 connection.commit()
 connection.close()
