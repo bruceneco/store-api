@@ -54,15 +54,20 @@ class Item(Resource):
         Return:
             dict with item created or dict with message.
         """
-        req_data = self.parser.parse_args()
-        item = self.create_item(name, req_data["price"])
-
-        if not item:
+        if self.get_by_name(name):
             return {"message": f"An item with name {name} aready exists."}, 400
+
+        req_data = self.parser.parse_args()
+        item = {"name": name, "price": req_data["price"]}
+        try:
+            self.create_item(item)
+        except:
+            return {"message": "An error occurrs creating the item."}, 500
+
         return item, 201
 
     @classmethod
-    def create_item(cls, name, price):
+    def create_item(cls, item):
         """
         Creates item with name and price passed.
 
@@ -71,10 +76,6 @@ class Item(Resource):
         Returns:
             Dict with item or None.
         """
-        if cls.get_by_name(name):
-            return None
-
-        item = {"name": name, "price": price}
 
         connection = sqlite3.connect("data.db")
         cursor = connection.cursor()
@@ -83,7 +84,6 @@ class Item(Resource):
 
         connection.commit()
         connection.close()
-        return item
 
     def delete(self, name):
         """
@@ -94,13 +94,16 @@ class Item(Resource):
         Return:
             dict with deletion message.
         """
-        connection = sqlite3.connect("data.db")
-        cursor = connection.cursor()
+        try:
+            connection = sqlite3.connect("data.db")
+            cursor = connection.cursor()
 
-        cursor.execute("DELETE FROM items WHERE name=?", (name,))
+            cursor.execute("DELETE FROM items WHERE name=?", (name,))
 
-        connection.commit()
-        connection.close()
+            connection.commit()
+            connection.close()
+        except:
+            return {"message": "An error occurred deleting the item."}, 500
 
         return {"message": "Item deleted"}
 
@@ -115,16 +118,24 @@ class Item(Resource):
             dict of item created or updated.
         """
         req_data = self.parser.parse_args()
-        item = self.create_item(name, req_data["price"])
-        if not item:
-            connection = sqlite3.connect("data.db")
-            cursor = connection.cursor()
 
-            cursor.execute("UPDATE items SET price=? WHERE name=?", (req_data["price"], name))
+        item = {"name": name, "price": req_data["price"]}
+        if self.get_by_name(name):
+            try:
+                connection = sqlite3.connect("data.db")
+                cursor = connection.cursor()
 
-            connection.commit()
-            connection.close()
-            item = {"name": name, "price": req_data["price"]}
+                cursor.execute("UPDATE items SET price=? WHERE name=?", (req_data["price"], name))
+
+                connection.commit()
+                connection.close()
+            except:
+                return {"message": "An error occurred updating the item."}, 500
+        else:
+            try:
+                self.create_item(name, req_data["price"])
+            except:
+                return {"message": "An error occurred creating the item."}, 500
 
         return item
 
@@ -139,13 +150,16 @@ class ItemList(Resource):
         Returns:
             dict with items inside a list.
         """
-        connection = sqlite3.connect("data.db")
-        cursor = connection.cursor()
+        try:
+            connection = sqlite3.connect("data.db")
+            cursor = connection.cursor()
 
-        items = cursor.execute("SELECT * FROM items")
-        items = items.fetchall()
+            items = cursor.execute("SELECT * FROM items")
+            items = items.fetchall()
 
-        connection.close()
+            connection.close()
+        except:
+            return {"message": "An error occurred getting the item."}, 500
 
         items = [{"name": item[0], "price": item[1]} for item in items]
 
