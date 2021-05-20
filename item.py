@@ -122,22 +122,26 @@ class Item(Resource):
         item = {"name": name, "price": req_data["price"]}
         if self.get_by_name(name):
             try:
-                connection = sqlite3.connect("data.db")
-                cursor = connection.cursor()
-
-                cursor.execute("UPDATE items SET price=? WHERE name=?", (req_data["price"], name))
-
-                connection.commit()
-                connection.close()
+                self.update(item)
             except:
                 return {"message": "An error occurred updating the item."}, 500
         else:
             try:
-                self.create_item(name, req_data["price"])
+                self.create_item(name, item["price"])
             except:
                 return {"message": "An error occurred creating the item."}, 500
 
         return item
+
+    @classmethod
+    def update(cls, item):
+        connection = sqlite3.connect("data.db")
+        cursor = connection.cursor()
+
+        cursor.execute("UPDATE items SET price=? WHERE name=?", (item["price"], item["name"]))
+
+        connection.commit()
+        connection.close()
 
 
 class ItemList(Resource):
