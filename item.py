@@ -127,7 +127,7 @@ class Item(Resource):
                 return {"message": "An error occurred updating the item."}, 500
         else:
             try:
-                self.create_item(name, item["price"])
+                self.create_item(item)
             except:
                 return {"message": "An error occurred creating the item."}, 500
 
